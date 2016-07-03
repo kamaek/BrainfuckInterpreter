@@ -6,6 +6,10 @@ public class BrainFuck {
 
     // вторник 14:00
 
+    // 1. вложенные циклы
+    // 2. loop_start/loop_end
+    // 3. static fields reinitialization
+
     public static void main(String[] args) {
         String bfHelloWorld =
                 "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++" +
@@ -102,16 +106,12 @@ public class BrainFuck {
         },
         LOOP_START('[') {
             public void execute() {
-                if (memory[curPos] == 0) {
-                    //curSymbPos = programCode.indexOf(']', curSymbPos);
-                }
+
             }
         },
         LOOP_END(']') {
             public void execute() {
-                //recentCommands.
-                //curSymbPos = programCode.lastIndexOf('[', curSymbPos);
-                //curSymbPos--;
+
             }
         };
 
@@ -125,64 +125,3 @@ public class BrainFuck {
         void execute();
     }
 }
-
-/*
-class Plus implements Command {
-        public void execute() {
-            memory[curPos]++;
-        }
-    }
-
-    class Minus implements Command {
-        public void execute() {
-            memory[curPos]--;
-        }
-    }
-
-    class Next implements Command {
-        public void execute() {
-            if (curPos == memory.length)
-                throw new IndexOutOfBoundsException("index is higher than memory size");
-            else
-                curPos++;
-        }
-    }
-
-    class Previous implements Command {
-        public void execute() {
-            if (curPos == 0)
-                throw new IndexOutOfBoundsException("index is less than 0");
-            else
-                curPos--;
-        }
-    }
-
-    class Print implements Command {
-        public void execute() {
-            System.out.print(Character.toChars(memory[curPos]));
-        }
-    }
-
-    class Input implements Command {
-        public void execute() {
-            Scanner input = new Scanner(System.in);
-            memory[curPos] = Integer.parseInt(input.nextLine());
-            input.close();
-        }
-    }
-
-    class LoopStart implements Command {
-        public void execute() {
-            if (memory[curPos] == 0) {
-                curSymbPos = programCode.indexOf(']', curSymbPos);
-            }
-        }
-    }
-
-    class LoopEnd implements Command {
-        public void execute() {
-            curSymbPos = programCode.lastIndexOf('[', curSymbPos);
-            curSymbPos--;
-        }
-    }
- */
