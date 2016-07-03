@@ -109,7 +109,7 @@ public class BrainFuck {
         },
         LOOP_END(']') {
             public void execute() {
-                recentCommands.
+                //recentCommands.
                 //curSymbPos = programCode.lastIndexOf('[', curSymbPos);
                 //curSymbPos--;
             }
