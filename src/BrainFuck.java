@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.Scanner;
 
 public class BrainFuck {
@@ -20,11 +19,10 @@ public class BrainFuck {
 
     static final int defaultMemSize = 30000;
     static int[] memory = new int[defaultMemSize];
-    static int curPos = 0;
+    static int memPosition = 0;
     static ArrayList<Command> recentCommands = new ArrayList<Command>();
 
     static void interpret(String programCode) {
-        //recentCommands.clear();
         for (int curSymbPos = 0; curSymbPos < programCode.length(); curSymbPos++) {
             switch (programCode.charAt(curSymbPos)) {
                 case '+':
@@ -56,8 +54,9 @@ public class BrainFuck {
     }
 
     static void execute() {
-        for (Command cmd : recentCommands)
+        for (Command cmd : recentCommands) {
             cmd.execute();
+        }
     }
 
     static void interpretAndExecute(String programCode) {
@@ -68,45 +67,47 @@ public class BrainFuck {
     enum Operation implements Command {
         PLUS('+') {
             public void execute() {
-                memory[curPos]++;
+                memory[memPosition]++;
             }
         },
         MINUS('-') {
             public void execute() {
-                memory[curPos]--;
+                memory[memPosition]--;
             }
         },
         NEXT('>') {
             public void execute() {
-                if (curPos == memory.length)
+                if (memPosition >= memory.length)
                     throw new IndexOutOfBoundsException("index is higher than memory size");
                 else
-                    curPos++;
+                    memPosition++;
             }
         },
         PREVIOUS('<') {
             public void execute() {
-                if (curPos == 0)
+                if (memPosition < 0)
                     throw new IndexOutOfBoundsException("index is less than 0");
                 else
-                    curPos--;
+                    memPosition--;
             }
         },
         PRINT('.') {
             public void execute() {
-                System.out.print(memory[curPos]);
+                System.out.print(Character.toChars(memory[memPosition]));
             }
         },
         INPUT(',') {
             public void execute() {
                 Scanner input = new Scanner(System.in);
-                memory[curPos] = Integer.parseInt(input.nextLine());
+                memory[memPosition] = Integer.parseInt(input.nextLine());
                 input.close();
             }
         },
         LOOP_START('[') {
             public void execute() {
+                if (memory[memPosition] != 0) {
 
+                }
             }
         },
         LOOP_END(']') {
