@@ -5,7 +5,6 @@ public class BrainFuck {
     // вторник 14:00
 
     // 1. вложенные циклы
-    // 2. loop_start/loop_end
 
     public static void main(String[] args) {
         String bfHelloWorld =
@@ -69,8 +68,7 @@ public class BrainFuck {
         PREVIOUS('<') {
             public void execute() {
                 if (memIndex < 0)
-                    throw new IndexOutOfBoundsException("index is less than 0 in cmd num "
-                            + cmdIndex + ", while value: " + memory[0]);
+                    throw new IndexOutOfBoundsException("index is less than 0");
                 else
                     memIndex--;
             }
@@ -92,7 +90,7 @@ public class BrainFuck {
                 if (memory[memIndex] == 0) {
                     //goto next loop_end command + 1
                     List<Command> subCommands = recentCommands.subList(cmdIndex, recentCommands.size());
-                    cmdIndex = subCommands.indexOf(Operation.LOOP_END);
+                    cmdIndex += subCommands.indexOf(Operation.LOOP_END);
                 }
             }
         },
