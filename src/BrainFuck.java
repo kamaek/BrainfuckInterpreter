@@ -4,7 +4,7 @@ public class BrainFuck {
 
     // вторник 14:00
 
-    // 1. вложенные циклы
+    // вложенные циклы
 
     public static void main(String[] args) {
         String bfHelloWorld =
