@@ -2,23 +2,17 @@ import java.util.*;
 
 public class BrainFuck {
 
-    // вторник 14:00
-
-    // вложенные циклы
-
     public static void main(String[] args) {
-        String bfHelloWorld =
-                "xyz++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++" +
-                        ".>+.+++++++xyz..+++.>++.<<+++++++++++++++.>.+++." +
-                        "------.--------.>+.>.xyz";
+        String bfHelloWorld = "xyz++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>--xyz"
+                + "-.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.xyz";
         BrainFuck.interpretAndExecute(bfHelloWorld);
     }
 
-    static final int defaultMemSize = 30000;
-    static int[] memory = new int[defaultMemSize];
-    static int memIndex;
-    static int cmdIndex;
-    static ArrayList<Command> recentCommands = new ArrayList<Command>();
+    private static final int defaultMemSize = 30000;
+    private static int[] memory = new int[defaultMemSize];
+    private static int memIndex;
+    private static int cmdIndex;
+    private static ArrayList<Command> commands = new ArrayList<Command>();
 
     public static void interpretAndExecute(String programCode) {
         interpret(programCode);
@@ -29,24 +23,24 @@ public class BrainFuck {
         Arrays.fill(memory, 0);
         memIndex = 0;
         cmdIndex = 0;
-        recentCommands.clear();
+        commands.clear();
     }
 
     private static void interpret(String programCode) {
         reset();
         programCode = Operation.deleteInvalidSymbols(programCode);
         for (int curSymbPos = 0; curSymbPos < programCode.length(); curSymbPos++) {
-            recentCommands.add(Operation.getCommand(programCode.charAt(curSymbPos)));
+            commands.add(Operation.getCommand(programCode.charAt(curSymbPos)));
         }
     }
 
     private static void execute() {
-        for (; cmdIndex < recentCommands.size(); cmdIndex++) {
-            recentCommands.get(cmdIndex).execute();
+        for (; cmdIndex < commands.size(); cmdIndex++) {
+            commands.get(cmdIndex).execute();
         }
     }
 
-    enum Operation implements Command {
+    private enum Operation implements Command {
         PLUS('+') {
             public void execute() {
                 memory[memIndex]++;
@@ -87,19 +81,14 @@ public class BrainFuck {
         },
         LOOP_START('[') {
             public void execute() {
-                if (memory[memIndex] == 0) {
-                    //goto next loop_end command + 1
-                    List<Command> subCommands = recentCommands.subList(cmdIndex, recentCommands.size());
-                    cmdIndex += subCommands.indexOf(Operation.LOOP_END);
-                }
+                if (memory[memIndex] == 0)
+                    toAnotherLoopEnd(Operation.LOOP_START);
             }
         },
         LOOP_END(']') {
             public void execute() {
-                //goto prev loop_start command
-                List<Command> subCommands = recentCommands.subList(0, cmdIndex);
-                cmdIndex = subCommands.lastIndexOf(Operation.LOOP_START);
-                cmdIndex--;
+                if (memory[memIndex] != 0)
+                    toAnotherLoopEnd(Operation.LOOP_END);
             }
         };
 
@@ -128,7 +117,7 @@ public class BrainFuck {
             StringBuilder builder = new StringBuilder(programCode);
 
             for (int i = 0; i < builder.length(); i++) {
-                if (!validCharacter(builder.charAt(i))) {
+                if (!isValidCharacter(builder.charAt(i))) {
                     builder.deleteCharAt(i);
                     i--;
                 }
@@ -137,11 +126,44 @@ public class BrainFuck {
             return builder.toString();
         }
 
-        private static boolean validCharacter(char ch) {
+        private static boolean isValidCharacter(char ch) {
             for (char validCh: validCharacters)
                 if (validCh == ch)
                     return true;
             return false;
+        }
+
+
+        //set cmdIndex to the correct state
+        private static void toAnotherLoopEnd(Operation from) {
+            if (!(from.equals(Operation.LOOP_END) || from.equals(Operation.LOOP_START)))
+                throw new IllegalArgumentException("only Operation.LOOP_END or Operation.LOOP_START allowed");
+
+            //function invoked when current command is LOOP_END or LOOP_START
+            //so already there is one matching
+            int matching = 1;
+            //indicate direction (forward - 1 or backward - -1) for movement among commands
+            int direction;
+            Operation to;
+
+            if (from == Operation.LOOP_START) {
+                to = Operation.LOOP_END;
+                direction = 1;
+            } else {
+                to = Operation.LOOP_START;
+                direction = -1;
+            }
+
+            while (true) {
+                cmdIndex += direction;
+                if (BrainFuck.commands.get(cmdIndex) == to) {
+                    matching--;
+                    if (matching == 0)
+                        break;
+                }
+                if (BrainFuck.commands.get(cmdIndex) == from)
+                    matching++;
+            }
         }
     }
 
