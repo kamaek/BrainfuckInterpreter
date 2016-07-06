@@ -6,49 +6,71 @@ public class BrainFuck {
         String bfHelloWorld = "xyz++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>--xyz"
                 + "-.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.xyz";
         BrainFuck.interpretAndExecute(bfHelloWorld);
+        System.out.print(BrainFuck.getJSCode(bfHelloWorld));
     }
 
     private static final int defaultMemSize = 30000;
     private static int[] memory = new int[defaultMemSize];
     private static int memIndex;
     private static int cmdIndex;
-    private static ArrayList<Command> commands = new ArrayList<Command>();
+    private static ArrayList<Operation> operations = new ArrayList<Operation>();
 
     public static void interpretAndExecute(String programCode) {
         interpret(programCode);
         execute();
     }
 
+    public static String getJSCode(String programCode) {
+        interpret(programCode);
+        StringBuilder code = new StringBuilder(
+                "memory = new Array(" + defaultMemSize + ");\n"
+                        + "memory.fill(0);\n"
+                        + "memIndex = 0;\n");
+
+        for (JSable obj: operations) {
+            code.append(obj.getJSRepresentation());
+            code.append("\n");
+        }
+
+        return code.toString();
+    }
+
     private static void reset() {
         Arrays.fill(memory, 0);
         memIndex = 0;
         cmdIndex = 0;
-        commands.clear();
+        operations.clear();
     }
 
     private static void interpret(String programCode) {
         reset();
         programCode = Operation.deleteInvalidSymbols(programCode);
         for (int curSymbPos = 0; curSymbPos < programCode.length(); curSymbPos++) {
-            commands.add(Operation.getCommand(programCode.charAt(curSymbPos)));
+            operations.add(Operation.getOperation(programCode.charAt(curSymbPos)));
         }
     }
 
     private static void execute() {
-        for (; cmdIndex < commands.size(); cmdIndex++) {
-            commands.get(cmdIndex).execute();
+        for (; cmdIndex < operations.size(); cmdIndex++) {
+            operations.get(cmdIndex).execute();
         }
     }
 
-    private enum Operation implements Command {
+    private enum Operation implements Command, JSable {
         PLUS('+') {
             public void execute() {
                 memory[memIndex]++;
+            }
+            public String getJSRepresentation() {
+                return "memory[memIndex]++;";
             }
         },
         MINUS('-') {
             public void execute() {
                 memory[memIndex]--;
+            }
+            public String getJSRepresentation() {
+                return "memory[memIndex]--;";
             }
         },
         NEXT('>') {
@@ -58,6 +80,9 @@ public class BrainFuck {
                 else
                     memIndex++;
             }
+            public String getJSRepresentation() {
+                return "memIndex++;";
+            }
         },
         PREVIOUS('<') {
             public void execute() {
@@ -66,10 +91,16 @@ public class BrainFuck {
                 else
                     memIndex--;
             }
+            public String getJSRepresentation() {
+                return "memIndex--;";
+            }
         },
         PRINT('.') {
             public void execute() {
                 System.out.print(Character.toChars(memory[memIndex]));
+            }
+            public String getJSRepresentation() {
+                return "document.write(String.fromCharCode(memory[memIndex]));";
             }
         },
         INPUT(',') {
@@ -78,17 +109,26 @@ public class BrainFuck {
                 memory[memIndex] = Integer.parseInt(input.nextLine());
                 input.close();
             }
+            public String getJSRepresentation() {
+                return "memory[memIndex]++;";
+            }
         },
         LOOP_START('[') {
             public void execute() {
                 if (memory[memIndex] == 0)
                     toAnotherLoopEnd(Operation.LOOP_START);
             }
+            public String getJSRepresentation() {
+                return "while (memory[memIndex] != 0) {";
+            }
         },
         LOOP_END(']') {
             public void execute() {
                 if (memory[memIndex] != 0)
                     toAnotherLoopEnd(Operation.LOOP_END);
+            }
+            public String getJSRepresentation() {
+                return "};";
             }
         };
 
@@ -109,7 +149,7 @@ public class BrainFuck {
             this.opSymb = symb;
         }
 
-        private static Command getCommand(char ch) {
+        private static Operation getOperation(char ch) {
             return commands.get(ch);
         }
 
@@ -142,7 +182,7 @@ public class BrainFuck {
             //function invoked when current command is LOOP_END or LOOP_START
             //so already there is one matching
             int matching = 1;
-            //indicate direction (forward - 1 or backward - -1) for movement among commands
+            //indicate direction (forward - 1 or backward - -1) for movement among operations
             int direction;
             Operation to;
 
@@ -156,12 +196,12 @@ public class BrainFuck {
 
             while (true) {
                 cmdIndex += direction;
-                if (BrainFuck.commands.get(cmdIndex) == to) {
+                if (BrainFuck.operations.get(cmdIndex) == to) {
                     matching--;
                     if (matching == 0)
                         break;
                 }
-                if (BrainFuck.commands.get(cmdIndex) == from)
+                if (BrainFuck.operations.get(cmdIndex) == from)
                     matching++;
             }
         }
@@ -169,5 +209,9 @@ public class BrainFuck {
 
     interface Command {
         void execute();
+    }
+
+    interface JSable {
+        String getJSRepresentation();
     }
 }
