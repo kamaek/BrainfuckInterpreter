@@ -12,7 +12,7 @@ public class BrainFuck {
     private static final int defaultMemSize = 30000;
     private static int[] memory = new int[defaultMemSize];
     private static int memIndex;
-    private static int cmdIndex;
+    private static int operationIndex;
     private static ArrayList<Operation> operations = new ArrayList<Operation>();
 
     public static void interpretAndExecute(String programCode) {
@@ -38,7 +38,7 @@ public class BrainFuck {
     private static void reset() {
         Arrays.fill(memory, 0);
         memIndex = 0;
-        cmdIndex = 0;
+        operationIndex = 0;
         operations.clear();
     }
 
@@ -51,8 +51,8 @@ public class BrainFuck {
     }
 
     private static void execute() {
-        for (; cmdIndex < operations.size(); cmdIndex++) {
-            operations.get(cmdIndex).execute();
+        for (; operationIndex < operations.size(); operationIndex++) {
+            operations.get(operationIndex).execute();
         }
     }
 
@@ -174,7 +174,7 @@ public class BrainFuck {
         }
 
 
-        //set cmdIndex to the correct state
+        //set operationIndex to the correct state
         private static void toAnotherLoopEnd(Operation from) {
             if (!(from.equals(Operation.LOOP_END) || from.equals(Operation.LOOP_START)))
                 throw new IllegalArgumentException("only Operation.LOOP_END or Operation.LOOP_START allowed");
@@ -195,13 +195,13 @@ public class BrainFuck {
             }
 
             while (true) {
-                cmdIndex += direction;
-                if (BrainFuck.operations.get(cmdIndex) == to) {
+                operationIndex += direction;
+                if (BrainFuck.operations.get(operationIndex) == to) {
                     matching--;
                     if (matching == 0)
                         break;
                 }
-                if (BrainFuck.operations.get(cmdIndex) == from)
+                if (BrainFuck.operations.get(operationIndex) == from)
                     matching++;
             }
         }
