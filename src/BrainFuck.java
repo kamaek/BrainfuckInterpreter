@@ -110,7 +110,7 @@ public class BrainFuck {
                 input.close();
             }
             public String getJSRepresentation() {
-                return "memory[memIndex]++;";
+                return "memory[memIndex] = prompt(\"input value: \");";
             }
         },
         LOOP_START('[') {
