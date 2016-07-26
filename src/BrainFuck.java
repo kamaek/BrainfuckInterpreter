@@ -5,108 +5,125 @@ public class BrainFuck {
     public static void main(String[] args) {
         String bfHelloWorld = "xyz++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>--xyz"
                 + "-.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.xyz";
-        BrainFuck.interpretAndExecute(bfHelloWorld);
-        System.out.print(BrainFuck.getJSCode(bfHelloWorld));
+        BrainFuck bf = new BrainFuck();
+        bf.interpretAndExecute(bfHelloWorld);
+        //System.out.print(BrainFuck.getJSCode(bfHelloWorld));
     }
 
-    private static final int defaultMemSize = 30000;
-    private static int[] memory = new int[defaultMemSize];
-    private static int memIndex;
-    private static int operationIndex;
-    private static ArrayList<Operation> operations = new ArrayList<Operation>();
+    class Memory {
+        private static final int defaultMemSize = 30000;
+        private int[] memory = new int[defaultMemSize];
+        private int memIndex;
 
-    public static void interpretAndExecute(String programCode) {
-        interpret(programCode);
-        execute();
-    }
-
-    public static String getJSCode(String programCode) {
-        interpret(programCode);
-        StringBuilder code = new StringBuilder(
-                "memory = new Array(" + defaultMemSize + ");\n"
-                        + "memory.fill(0);\n"
-                        + "memIndex = 0;\n");
-
-        for (JSable obj: operations) {
-            code.append(obj.getJSRepresentation());
-            code.append("\n");
+        Memory() {
+            memIndex = 0;
         }
 
-        return code.toString();
+        private void reset() {
+            Arrays.fill(memory, 0);
+            memIndex = 0;
+        }
+
+        public void incrementCurrentCell() {
+            memory[memIndex]++;
+        }
+
+        public void decrementCurrentCell() {
+            memory[memIndex]--;
+        }
+
+        public int getCurrentCellValue() {
+            return memory[memIndex];
+        }
+
+        public void setCurrentCellValue(int val) {
+            memory[memIndex] = val;
+        }
+
+        public void toNextCell() {
+            if (memIndex >= memory.length)
+                throw new IndexOutOfBoundsException("index is higher than memory size");
+            else
+                memIndex++;
+        }
+
+        public void toPrevCell() {
+            if (memIndex < 0)
+                throw new IndexOutOfBoundsException("index is less than 0");
+            else
+                memIndex--;
+        }
     }
 
-    private static void reset() {
-        Arrays.fill(memory, 0);
-        memIndex = 0;
-        operationIndex = 0;
-        operations.clear();
+    Memory memory = new Memory();
+
+    public void interpretAndExecute(String programCode) {
+        ArrayList<Operation> commands = interpret(programCode);
+        execute(commands);
     }
 
-    private static void interpret(String programCode) {
-        reset();
+    private ArrayList<Operation> interpret(String programCode) {
+        ArrayList<Operation> commands;
         programCode = Operation.deleteInvalidSymbols(programCode);
+        commands = new ArrayList<Operation>(programCode.length());
         for (int curSymbPos = 0; curSymbPos < programCode.length(); curSymbPos++) {
-            operations.add(Operation.getOperation(programCode.charAt(curSymbPos)));
+            commands.add(Operation.getOperation(programCode.charAt(curSymbPos)));
         }
+        return commands;
     }
 
-    private static void execute() {
-        for (; operationIndex < operations.size(); operationIndex++) {
-            operations.get(operationIndex).execute();
+    private void execute(ArrayList<Operation> commands) {
+        memory.reset();
+        for (Operation op: commands) {
+            op.execute(memory);
         }
     }
 
     private enum Operation implements Command, JSable {
         PLUS('+') {
-            public void execute() {
-                memory[memIndex]++;
+            public void execute(Memory mem) {
+                mem.incrementCurrentCell();
             }
             public String getJSRepresentation() {
                 return "memory[memIndex]++;";
             }
         },
         MINUS('-') {
-            public void execute() {
-                memory[memIndex]--;
+            public void execute(Memory mem) {
+                mem.decrementCurrentCell();
             }
             public String getJSRepresentation() {
                 return "memory[memIndex]--;";
             }
         },
         NEXT('>') {
-            public void execute() {
-                if (memIndex >= memory.length)
-                    throw new IndexOutOfBoundsException("index is higher than memory size");
-                else
-                    memIndex++;
+            public void execute(Memory mem) {
+                mem.toNextCell();
             }
             public String getJSRepresentation() {
                 return "memIndex++;";
             }
         },
         PREVIOUS('<') {
-            public void execute() {
-                if (memIndex < 0)
-                    throw new IndexOutOfBoundsException("index is less than 0");
-                else
-                    memIndex--;
+            public void execute(Memory mem) {
+                mem.toPrevCell();
             }
             public String getJSRepresentation() {
                 return "memIndex--;";
             }
         },
         PRINT('.') {
-            public void execute() {
-                System.out.print(Character.toChars(memory[memIndex]));
+            public void execute(Memory mem) {
+                System.out.print(Character.toChars(mem.getCurrentCellValue()));
             }
             public String getJSRepresentation() {
                 return "document.write(String.fromCharCode(memory[memIndex]));";
             }
         },
         INPUT(',') {
-            public void execute() {
+            public void execute(Memory mem) {
                 Scanner input = new Scanner(System.in);
-                memory[memIndex] = Integer.parseInt(input.nextLine());
+                mem.setCurrentCellValue(Integer.parseInt(input.nextLine()));
                 input.close();
             }
             public String getJSRepresentation() {
@@ -114,8 +131,8 @@ public class BrainFuck {
             }
         },
         LOOP_START('[') {
-            public void execute() {
-                if (memory[memIndex] == 0)
+            public void execute(Memory mem) {
+                if (mem.getCurrentCellValue() == 0)
                     toAnotherLoopEnd(Operation.LOOP_START);
             }
             public String getJSRepresentation() {
@@ -123,8 +140,8 @@ public class BrainFuck {
             }
         },
         LOOP_END(']') {
-            public void execute() {
-                if (memory[memIndex] != 0)
+            public void execute(Memory mem) {
+                if (mem.getCurrentCellValue() != 0)
                     toAnotherLoopEnd(Operation.LOOP_END);
             }
             public String getJSRepresentation() {
@@ -196,22 +213,24 @@ public class BrainFuck {
 
             while (true) {
                 operationIndex += direction;
-                if (BrainFuck.operations.get(operationIndex) == to) {
+                if (operations.get(operationIndex) == to) {
                     matching--;
                     if (matching == 0)
                         break;
                 }
-                if (BrainFuck.operations.get(operationIndex) == from)
+                if (operations.get(operationIndex) == from)
                     matching++;
             }
         }
     }
 
     interface Command {
-        void execute();
+        void execute(Memory mem);
     }
 
     interface JSable {
         String getJSRepresentation();
     }
 }
+
+
