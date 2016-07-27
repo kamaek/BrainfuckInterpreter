@@ -79,45 +79,30 @@ public class BrainFuck {
         }
     }
 
-    private enum Operation implements Command, JSable {
+    private enum Operation implements Command {
         PLUS('+') {
             public void execute(Memory mem) {
                 mem.incrementCurrentCell();
-            }
-            public String getJSRepresentation() {
-                return "memory[memIndex]++;";
             }
         },
         MINUS('-') {
             public void execute(Memory mem) {
                 mem.decrementCurrentCell();
             }
-            public String getJSRepresentation() {
-                return "memory[memIndex]--;";
-            }
         },
         NEXT('>') {
             public void execute(Memory mem) {
                 mem.toNextCell();
-            }
-            public String getJSRepresentation() {
-                return "memIndex++;";
             }
         },
         PREVIOUS('<') {
             public void execute(Memory mem) {
                 mem.toPrevCell();
             }
-            public String getJSRepresentation() {
-                return "memIndex--;";
-            }
         },
         PRINT('.') {
             public void execute(Memory mem) {
                 System.out.print(Character.toChars(mem.getCurrentCellValue()));
-            }
-            public String getJSRepresentation() {
-                return "document.write(String.fromCharCode(memory[memIndex]));";
             }
         },
         INPUT(',') {
@@ -126,26 +111,17 @@ public class BrainFuck {
                 mem.setCurrentCellValue(Integer.parseInt(input.nextLine()));
                 input.close();
             }
-            public String getJSRepresentation() {
-                return "memory[memIndex] = prompt(\"input value: \");";
-            }
         },
         LOOP_START('[') {
             public void execute(Memory mem) {
                 if (mem.getCurrentCellValue() == 0)
                     toAnotherLoopEnd(Operation.LOOP_START);
             }
-            public String getJSRepresentation() {
-                return "while (memory[memIndex] != 0) {";
-            }
         },
         LOOP_END(']') {
             public void execute(Memory mem) {
                 if (mem.getCurrentCellValue() != 0)
                     toAnotherLoopEnd(Operation.LOOP_END);
-            }
-            public String getJSRepresentation() {
-                return "};";
             }
         };
 
