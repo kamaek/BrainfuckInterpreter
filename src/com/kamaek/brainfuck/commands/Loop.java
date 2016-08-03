@@ -1,20 +1,19 @@
 package com.kamaek.brainfuck.commands;
 
 import com.kamaek.brainfuck.Memory;
-import com.kamaek.brainfuck.translator.CommandVisitor;
-import com.kamaek.brainfuck.translator.Visitable;
+import com.kamaek.brainfuck.CommandVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Loop implements Command {
-    private List<Command> commands = new ArrayList<Command>();
+public class Loop implements VisitableCommand {
+    private List<VisitableCommand> commands = new ArrayList<VisitableCommand>();
 
-    public Loop(List<Command> loopCommands) {
+    public Loop(List<VisitableCommand> loopCommands) {
         commands = loopCommands;
     }
 
-    public List<Command> getCommands() {
+    public List<VisitableCommand> getCommands() {
         return commands;
     }
 
@@ -30,7 +29,7 @@ public class Loop implements Command {
 
     private void executeLoop(Memory mem) {
         while (mem.getCurrentCellValue() != 0)
-            for (Command cmd: commands)
+            for (VisitableCommand cmd: commands)
                 cmd.execute(mem);
     }
 

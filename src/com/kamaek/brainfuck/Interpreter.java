@@ -1,10 +1,10 @@
 package com.kamaek.brainfuck;
 
-import com.kamaek.brainfuck.commands.Command;
+import com.kamaek.brainfuck.commands.VisitableCommand;
 
 import java.util.List;
 
 public interface Interpreter {
-    List<Command> prepareCommands(String programCode);
-    void execute(List<Command> commands);
+    List<VisitableCommand> prepareCommands(String programCode);
+    void execute(List<VisitableCommand> commands);
 }

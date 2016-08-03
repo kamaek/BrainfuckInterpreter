@@ -1,4 +1,4 @@
-package com.kamaek.brainfuck.translator;
+package com.kamaek.brainfuck;
 
 import com.kamaek.brainfuck.commands.*;
 

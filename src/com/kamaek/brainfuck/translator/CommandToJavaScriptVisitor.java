@@ -1,5 +1,6 @@
 package com.kamaek.brainfuck.translator;
 
+import com.kamaek.brainfuck.CommandVisitor;
 import com.kamaek.brainfuck.commands.*;
 
 public class CommandToJavaScriptVisitor implements CommandVisitor<String> {
@@ -38,7 +39,7 @@ public class CommandToJavaScriptVisitor implements CommandVisitor<String> {
     public String visit(Loop loop) {
         StringBuilder strBuilder = new StringBuilder("while (memory[memIndex] != 0) {\n");
 
-        for (Command cmd: loop.getCommands()) {
+        for (VisitableCommand cmd: loop.getCommands()) {
             strBuilder.append(cmd.accept(this));
             strBuilder.append("\n");
         }

@@ -1,10 +1,9 @@
 package com.kamaek.brainfuck.commands;
 
 import com.kamaek.brainfuck.Memory;
-import com.kamaek.brainfuck.translator.CommandVisitor;
-import com.kamaek.brainfuck.translator.Visitable;
+import com.kamaek.brainfuck.CommandVisitor;
 
-public class PreviousCell implements Command {
+public class PreviousCell implements VisitableCommand {
 
     @Override
     public void execute(Memory mem) {

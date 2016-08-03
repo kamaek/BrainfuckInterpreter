@@ -15,30 +15,30 @@ public class BrainFuckImpl implements Interpreter {
         Interpreter brainFuck = new BrainFuckImpl();
         Translator translator = new ToJavaScriptTranslator();
 
-        List<Command> commands = brainFuck.prepareCommands(bfHelloWorld);
+        List<VisitableCommand> commands = brainFuck.prepareCommands(bfHelloWorld);
         brainFuck.execute(commands);
         System.out.print(translator.translate(commands));
     }
 
     @Override
-    public void execute(List<Command> commands) {
+    public void execute(List<VisitableCommand> commands) {
         executeCommands(commands);
     }
 
     @Override
-    public List<Command> prepareCommands(String programCode) {
+    public List<VisitableCommand> prepareCommands(String programCode) {
         return parseCode(programCode);
     }
 
-    private void executeCommands(List<Command> commands) {
+    private void executeCommands(List<VisitableCommand> commands) {
         Memory memory = new Memory();
-        for (Command cmd: commands) {
+        for (VisitableCommand cmd: commands) {
             cmd.execute(memory);
         }
     }
 
-    private List<Command> parseCode(String programCode) {
-        List<Command> commands = new ArrayList<Command>();
+    private List<VisitableCommand> parseCode(String programCode) {
+        List<VisitableCommand> commands = new ArrayList<VisitableCommand>();
 
         for (int curSymbPos = 0; curSymbPos < programCode.length(); curSymbPos++) {
             switch (programCode.charAt(curSymbPos)) {
@@ -75,7 +75,7 @@ public class BrainFuckImpl implements Interpreter {
                     }
                     loopEnd = curSymbPos;
 
-                    List<Command> loopCommands = parseCode(programCode.substring(loopStart, loopEnd));
+                    List<VisitableCommand> loopCommands = parseCode(programCode.substring(loopStart, loopEnd));
                     commands.add(new Loop(loopCommands));
                     break;
             }
